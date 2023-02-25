@@ -130,7 +130,3 @@ async def cli() -> None:
         print("Readings:")
         _all_readings = await api.async_get_meters()
         pprint(_all_readings)
-
-
-if __name__ == "__main__":
-    cli()

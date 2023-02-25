@@ -49,8 +49,7 @@ class AbstractTaipitAuth(ABC):
 
         LOGGER.debug("Request to %s with data %s", url, kwargs)
 
-        async with self._session.request(method, _url, **kwargs) as resp:
-            resp.raise_for_status()
+        async with self._session.request(method, _url, **kwargs, raise_for_status=True) as resp:
             data = await resp.json()
             LOGGER.debug("Request finished with status=%s, headers=%s, data=%s",
                          resp.status, resp.headers, data)

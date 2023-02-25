@@ -8,7 +8,7 @@ dependencies = [
     "aiohttp"
 ]
 dynamic = ["version"]
-description = "Python API For Taipit Cloud Meters"
+description = "Asynchronous Python API For Taipit Cloud Meters"
 readme = "README.md"
 requires-python = ">=3.9.0"
 keywords = [
