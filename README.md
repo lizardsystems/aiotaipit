@@ -1,6 +1,6 @@
 # aioTaipit
 
-A  Python API for [Taipit cloud meters](https://cloud.meters.taipit.ru).
+Asynchronous Python API for [Taipit cloud meters](https://cloud.meters.taipit.ru).
 
 ## Installation
 
