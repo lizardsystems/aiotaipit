@@ -87,8 +87,7 @@ class SimpleTaipitAuth(AbstractTaipitAuth):
         LOGGER.debug("Token request %s with data %s",
                      _url, data)
 
-        async with self._session.post(_url, data=data) as resp:
-
+        async with self._session.get(_url, params=data) as resp:
             if resp.status == 400:
                 error_info = await resp.json()
                 if error_info['error'] == 'invalid_grant':
@@ -96,11 +95,9 @@ class SimpleTaipitAuth(AbstractTaipitAuth):
                 if error_info['error'] == 'invalid_client':
                     raise TaipitAuthInvalidClient(error_info['error_description'])
                 raise TaipitAuthError
-
             resp.raise_for_status()
 
             new_token = await resp.json()
-
             if not self._is_valid_token(new_token):
                 raise TaipitInvalidTokenResponse
 
