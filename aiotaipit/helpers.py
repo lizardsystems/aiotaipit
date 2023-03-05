@@ -1,7 +1,7 @@
 """Helpers and utils."""
 from __future__ import annotations
 
-from const import REGIONS, METER_MODELS, UNKNOWN
+from .const import REGIONS, METER_MODELS, UNKNOWN
 
 
 def get_region_name(region_id: int) -> str:
