@@ -11,7 +11,10 @@ from .const import (
     DEFAULT_CLIENT_ID,
     DEFAULT_CLIENT_SECRET,
     DEFAULT_TOKEN_URL,
-    DEFAULT_BASE_URL, TOKEN_REQUIRED_FIELDS, LOGGER
+    DEFAULT_BASE_URL,
+    TOKEN_REQUIRED_FIELDS,
+    LOGGER,
+    CLOCK_OUT_OF_SYNC_MAX_SEC
 )
 from .exceptions import (
     TaipitInvalidTokenResponse,
@@ -22,15 +25,16 @@ from .exceptions import (
     TaipitTokenAcquireFailed
 )
 
-CLOCK_OUT_OF_SYNC_MAX_SEC = 20
-
 
 class AbstractTaipitAuth(ABC):
     """Abstract class to make authenticated requests."""
     _session: ClientSession
     _base_url: str
 
-    def __init__(self, session: ClientSession, base_url: str = DEFAULT_BASE_URL):
+    def __init__(self,
+                 session: ClientSession,
+                 *,
+                 base_url: str = DEFAULT_BASE_URL):
         """Initialize the auth."""
         self._session = session
         self._base_url = base_url
@@ -57,7 +61,7 @@ class AbstractTaipitAuth(ABC):
 
 
 class SimpleTaipitAuth(AbstractTaipitAuth):
-    """Simple implementation of AbstractFlickAuth that gets a token once."""
+    """Simple implementation of AbstractTaipitAuth that gets a token once."""
     _username: str
     _password: str
     _client_id: str
@@ -65,13 +69,16 @@ class SimpleTaipitAuth(AbstractTaipitAuth):
     _token_url: str
     _token: Optional[Dict[str, Any]] = None
 
-    def __init__(self, username: str, password: str,
+    def __init__(self,
+                 username: str,
+                 password: str,
                  session: ClientSession,
+                 *,
                  client_id: str = DEFAULT_CLIENT_ID,
                  client_secret: str = DEFAULT_CLIENT_SECRET,
                  base_url: str = DEFAULT_BASE_URL,
                  token_url: str = DEFAULT_TOKEN_URL):
-        super().__init__(session, base_url)
+        super().__init__(session, base_url=base_url)
         self._username = username
         self._password = password
         self._client_id = client_id
@@ -84,8 +91,7 @@ class SimpleTaipitAuth(AbstractTaipitAuth):
         data["client_id"] = self._client_id
         data["client_secret"] = self._client_secret
 
-        LOGGER.debug("Token request %s with data %s",
-                     _url, data)
+        LOGGER.debug("Token request %s with data %s", _url, data)
 
         async with self._session.get(_url, params=data) as resp:
             if resp.status == 400:
@@ -109,7 +115,7 @@ class SimpleTaipitAuth(AbstractTaipitAuth):
             return cast(dict, new_token)
 
     async def _async_refresh_token(self, token: dict) -> dict:
-        """Refresh tokens."""
+        """Refresh token."""
         try:
             new_token = await self._token_request(
                 {
@@ -125,7 +131,7 @@ class SimpleTaipitAuth(AbstractTaipitAuth):
         return cast(dict, new_token)
 
     async def _async_new_token(self) -> dict:
-        """Refresh tokens."""
+        """Get a new token."""
         try:
             new_token = await self._token_request(
                 {
@@ -149,7 +155,7 @@ class SimpleTaipitAuth(AbstractTaipitAuth):
 
     @staticmethod
     def _is_expired_token(token: dict) -> bool:
-        """Check if token is not expired"""
+        """Check if token is expired"""
         return (
                 cast(float, token["expires_at"])
                 < time.time() + CLOCK_OUT_OF_SYNC_MAX_SEC

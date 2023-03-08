@@ -7,8 +7,7 @@ from .const import REGIONS, METER_MODELS
 
 
 def get_region_name(region_id: int) -> str:
-    region_name = REGIONS.get(region_id, str(region_id))
-    return region_name
+    return REGIONS.get(region_id, str(region_id))
 
 
 def get_model_name(model_id: int) -> Tuple[str, str]:
