@@ -14,7 +14,10 @@ class TaipitApi:
     """Class to communicate with the Taipit API."""
     _api_url: str
 
-    def __init__(self, auth: AbstractTaipitAuth, api_url: str = DEFAULT_API_URL):
+    def __init__(self,
+                 auth: AbstractTaipitAuth,
+                 *,
+                 api_url: str = DEFAULT_API_URL):
         """Initialize the API and store the auth."""
         self._auth = auth
         self._api_url = api_url

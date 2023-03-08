@@ -157,3 +157,4 @@ REGIONS: dict[int, str] = {
 SECTION_METER_TYPES_FULL = 'meterTypesFull'
 
 TOKEN_REQUIRED_FIELDS = {'access_token', 'expires_in', 'refresh_token'}
+CLOCK_OUT_OF_SYNC_MAX_SEC = 20
