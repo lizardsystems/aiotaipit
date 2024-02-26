@@ -69,3 +69,8 @@ class TaipitApi:
         _params = {PARAM_SECTIONS: ','.join(sections)}
         _url = f'config/settings'
         return await self.async_get(_url, params=_params)
+
+    async def async_get_tariff(self, meter_id: int) -> dict[str, Any]:
+        """Get tariff for meter. Available only for meter owner"""
+        _url = f"meter/tariff/{meter_id}"
+        return await self.async_get(_url)
