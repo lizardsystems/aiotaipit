@@ -18,7 +18,7 @@ class TaipitAuthInvalidClient(TaipitAuthError):
     """The client credentials are invalid"""
 
 
-class TaipitTokenError(TaipitAuthError):
+class TaipitTokenError(TaipitError):
     """Taipit token error"""
 
 

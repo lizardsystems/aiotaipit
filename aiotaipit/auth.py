@@ -67,7 +67,7 @@ class SimpleTaipitAuth(AbstractTaipitAuth):
     _client_id: str
     _client_secret: str
     _token_url: str
-    _token: Optional[Dict[str, Any]] = None
+    _token: Dict[str, Any] = {}
 
     def __init__(self,
                  username: str,
@@ -97,10 +97,10 @@ class SimpleTaipitAuth(AbstractTaipitAuth):
             if resp.status == 400:
                 error_info = await resp.json()
                 if error_info['error'] == 'invalid_grant':
-                    raise TaipitAuthInvalidGrant(error_info['error_description'])
+                    raise TaipitAuthInvalidGrant(error_info.get('error_description'))
                 if error_info['error'] == 'invalid_client':
-                    raise TaipitAuthInvalidClient(error_info['error_description'])
-                raise TaipitAuthError
+                    raise TaipitAuthInvalidClient(error_info.get('error_description'))
+                raise TaipitAuthError(error_info.get('error_description'))
             resp.raise_for_status()
 
             new_token = await resp.json()
@@ -156,14 +156,16 @@ class SimpleTaipitAuth(AbstractTaipitAuth):
     @staticmethod
     def _is_expired_token(token: dict) -> bool:
         """Check if token is expired"""
-        return (
-                cast(float, token["expires_at"])
-                < time.time() + CLOCK_OUT_OF_SYNC_MAX_SEC
-        )
+        if "expires_at" in token:
+            return (
+                    cast(float, token.get("expires_at", 0))
+                    < time.time() + CLOCK_OUT_OF_SYNC_MAX_SEC
+            )
+        return False
 
     async def async_get_access_token(self):
         """Get access token"""
-        if self._token:
+        if self._is_valid_token(self._token):
             if self._is_expired_token(self._token):
                 self._token = await self._async_refresh_token(self._token)
         else:

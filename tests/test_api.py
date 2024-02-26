@@ -1,10 +1,11 @@
 import pytest
+from aiohttp import ClientResponseError
 
-from aiotaipit import TaipitApi
+from aiotaipit import TaipitApi, SimpleTaipitAuth
 from aiotaipit.const import (
     SECTION_CONTROLLERS,
     SECTION_METER_TYPES,
-    SECTION_REGIONS, SECTION_METER_TYPES_FULL
+    SECTION_REGIONS, SECTION_METER_TYPES_FULL, GUEST_USERNAME
 )
 
 CONF_CONTROLLER_ID = 'controllerId'
@@ -51,10 +52,12 @@ class TestTaipitApi:
         for meter_id in meter_ids:
             _readings = await api.async_get_meter_readings(meter_id)
 
-    async def test_get_own_meters(self, api: TaipitApi, meter_ids: list):
+    async def test_get_own_meters(self, api: TaipitApi, auth: SimpleTaipitAuth, meter_ids: list):
         _meters = await api.async_get_own_meters()
         assert _meters is not None
         assert isinstance(_meters, list)
+        if auth._username == GUEST_USERNAME:  # guest user doesn't own meters
+            assert len(_meters) == 0
         for meter in _meters:
             if meter[CONF_ID] not in meter_ids:
                 meter_ids.append(meter[CONF_ID])
@@ -96,3 +99,16 @@ class TestTaipitApi:
         assert isinstance(_settings[SECTION_METER_TYPES_FULL], list)
         assert SECTION_REGIONS in _settings
         assert isinstance(_settings[SECTION_REGIONS], list)
+
+    async def test_async_get_tariff(self, api: TaipitApi, auth: SimpleTaipitAuth, meter_ids: list):
+        if auth._username == GUEST_USERNAME:
+            for meter_id in meter_ids:
+                with pytest.raises(ClientResponseError, match='Forbidden') as exc_info:
+                    _tariff = await api.async_get_tariff(meter_id)
+                assert exc_info.type is ClientResponseError
+        else:
+            for meter_id in meter_ids:
+                _tariff = await api.async_get_tariff(meter_id)
+                assert _tariff
+                assert 'prices' in _tariff
+                assert 'regionName' in _tariff
