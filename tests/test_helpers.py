@@ -1,9 +1,10 @@
+"""Tests for aiotaipit helpers module."""
 from __future__ import annotations
 
 from aiotaipit import helpers
 
 
-class TestTaipitApi:
+class TestHelpers:
     def test_regions(self):
         assert helpers.get_region_name(61) == 'Ростовская область'
         assert helpers.get_region_name(133) == '133'

@@ -1,8 +1,9 @@
+"""Integration tests for aiotaipit API module (require real API)."""
 from __future__ import annotations
 
 import pytest
 
-from aiotaipit import TaipitApi, SimpleTaipitAuth, TaipitApiError
+from aiotaipit import SimpleTaipitAuth, TaipitApi, TaipitApiError
 from aiotaipit.const import (
     GUEST_USERNAME,
     SECTION_CONTROLLERS,
@@ -11,7 +12,6 @@ from aiotaipit.const import (
     SECTION_REGIONS,
 )
 
-CONF_CONTROLLER_ID = 'controllerId'
 CONF_ENERGY_T3_A = 'energy_t3_a'
 CONF_ENERGY_T2_A = 'energy_t2_a'
 CONF_ENERGY_T1_A = 'energy_t1_a'
@@ -25,6 +25,7 @@ CONF_USERNAME = 'username'
 CONF_ID = 'id'
 
 
+@pytest.mark.integration
 class TestTaipitApi:
     @pytest.fixture(scope='class')
     def user(self) -> dict:

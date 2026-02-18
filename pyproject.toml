@@ -63,3 +63,6 @@ include = ["aiotaipit*"]
 asyncio_mode = "auto"
 asyncio_default_test_loop_scope = "class"
 asyncio_default_fixture_loop_scope = "class"
+markers = [
+    "integration: tests that require real API access (deselected by default in CI)",
+]

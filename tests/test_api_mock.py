@@ -12,7 +12,6 @@ from aiotaipit.const import DEFAULT_BASE_URL
 from tests.conftest import load_fixture
 
 API_URL = f"{DEFAULT_BASE_URL}/api"
-TOKEN_URL = f"{DEFAULT_BASE_URL}/oauth/v2/token"
 METER_ID = 12345
 USER_ID = "67890"
 

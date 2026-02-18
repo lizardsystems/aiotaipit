@@ -26,4 +26,4 @@ jobs:
         run: pip install -r requirements_test.txt -e .
 
       - name: Run tests
-        run: pytest tests/ -v
+        run: pytest tests/ -v -m "not integration"

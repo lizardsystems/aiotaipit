@@ -1,6 +1,10 @@
+"""Integration tests for aiotaipit auth module (require real API)."""
 from __future__ import annotations
 
+import pytest
 
+
+@pytest.mark.integration
 class TestTaipitAuth:
     async def test_new_token(self, auth):
         token = await auth._async_new_token()
