@@ -1,16 +1,16 @@
 [build-system]
-requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "aiotaipit"
+version = "3.0.0"
 dependencies = [
-    "aiohttp"
+    "aiohttp>=3"
 ]
-dynamic = ["version"]
 description = "Asynchronous Python API For Taipit Cloud Meters"
 readme = "README.md"
-requires-python = ">=3.9.0"
+requires-python = ">=3.13"
 keywords = [
     "taipit",
     "neva",
@@ -25,11 +25,17 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: 3 :: Only",
     "Typing :: Typed",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-asyncio",
+    "aioresponses",
 ]
 
 [project.urls]
@@ -37,15 +43,10 @@ Home = "https://github.com/lizardsystems/aiotaipit"
 Repository = "https://github.com/lizardsystems/aiotaipit"
 Documentation = "https://github.com/lizardsystems/aiotaipit"
 "Bug Tracker" = "https://github.com/lizardsystems/aiotaipit/issues"
-Changelog = "https://github.com/lizardsystems/aiotaipit/blob/master/CHANGELOG.md"
+Changelog = "https://github.com/lizardsystems/aiotaipit/blob/main/CHANGELOG.md"
 
 [[project.authors]]
 name = "LizardSystems"
-
-[tool.setuptools_scm]
-write_to = "aiotaipit/_version.py"
-local_scheme = "no-local-version"
-version_scheme = "post-release"
 
 [tool.setuptools]
 platforms = ["any"]
@@ -57,3 +58,8 @@ aiotaipit = "aiotaipit.__main__:main"
 
 [tool.setuptools.packages.find]
 include = ["aiotaipit*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_test_loop_scope = "class"
+asyncio_default_fixture_loop_scope = "class"

@@ -6,29 +6,33 @@ class TaipitError(Exception):
     """Base class for aiotaipit errors."""
 
 
+class TaipitApiError(TaipitError):
+    """Non-auth API/HTTP errors (e.g. server 5xx, unexpected status)."""
+
+
 class TaipitAuthError(TaipitError):
-    """Base class for aiotaipit errors."""
+    """Base class for aiotaipit auth errors."""
 
 
 class TaipitAuthInvalidGrant(TaipitAuthError):
-    """Invalid username and password combination"""
+    """Invalid username and password combination."""
 
 
 class TaipitAuthInvalidClient(TaipitAuthError):
-    """The client credentials are invalid"""
+    """The client credentials are invalid."""
 
 
 class TaipitTokenError(TaipitError):
-    """Taipit token error"""
+    """Taipit token error."""
 
 
 class TaipitInvalidTokenResponse(TaipitTokenError):
-    """Invalid token response"""
+    """Invalid token response."""
 
 
 class TaipitTokenAcquireFailed(TaipitTokenError):
-    """Taipit token error"""
+    """Failed to acquire a new token."""
 
 
 class TaipitTokenRefreshFailed(TaipitTokenError):
-    """Token refresh failed"""
+    """Token refresh failed."""

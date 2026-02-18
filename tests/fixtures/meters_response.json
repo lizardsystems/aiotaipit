@@ -1,0 +1,17 @@
+[
+    {
+        "id": 12345,
+        "metername": "Test Meter",
+        "sn": "SN001",
+        "type": 16,
+        "status": 1,
+        "ecometerdata": {
+            "lastReading": {
+                "energy_a": 1234.5,
+                "energy_t1_a": 800.0,
+                "energy_t2_a": 300.0,
+                "energy_t3_a": 134.5
+            }
+        }
+    }
+]

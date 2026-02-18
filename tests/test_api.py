@@ -1,11 +1,14 @@
-import pytest
-from aiohttp import ClientResponseError
+from __future__ import annotations
 
-from aiotaipit import TaipitApi, SimpleTaipitAuth
+import pytest
+
+from aiotaipit import TaipitApi, SimpleTaipitAuth, TaipitApiError
 from aiotaipit.const import (
+    GUEST_USERNAME,
     SECTION_CONTROLLERS,
     SECTION_METER_TYPES,
-    SECTION_REGIONS, SECTION_METER_TYPES_FULL, GUEST_USERNAME
+    SECTION_METER_TYPES_FULL,
+    SECTION_REGIONS,
 )
 
 CONF_CONTROLLER_ID = 'controllerId'
@@ -22,7 +25,6 @@ CONF_USERNAME = 'username'
 CONF_ID = 'id'
 
 
-@pytest.mark.asyncio
 class TestTaipitApi:
     @pytest.fixture(scope='class')
     def user(self) -> dict:
@@ -85,7 +87,6 @@ class TestTaipitApi:
         assert CONF_DATA in _warnings
         assert isinstance(_warnings[CONF_DATA], list)
         assert CONF_SUCCESS in _warnings
-        assert CONF_SUCCESS in _warnings
         assert _warnings[CONF_SUCCESS]
 
     async def test_get_settings(self, api: TaipitApi):
@@ -103,9 +104,8 @@ class TestTaipitApi:
     async def test_async_get_tariff(self, api: TaipitApi, auth: SimpleTaipitAuth, meter_ids: list):
         if auth._username == GUEST_USERNAME:
             for meter_id in meter_ids:
-                with pytest.raises(ClientResponseError, match='Forbidden') as exc_info:
-                    _tariff = await api.async_get_tariff(meter_id)
-                assert exc_info.type is ClientResponseError
+                with pytest.raises(TaipitApiError):
+                    await api.async_get_tariff(meter_id)
         else:
             for meter_id in meter_ids:
                 _tariff = await api.async_get_tariff(meter_id)

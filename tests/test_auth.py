@@ -1,7 +1,6 @@
-import pytest
+from __future__ import annotations
 
 
-@pytest.mark.asyncio
 class TestTaipitAuth:
     async def test_new_token(self, auth):
         token = await auth._async_new_token()

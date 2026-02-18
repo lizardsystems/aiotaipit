@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 import logging
-from typing import Tuple
+from typing import Final
 
-LOGGER = logging.getLogger(__package__)
+LOGGER: Final = logging.getLogger(__package__)
 
-LOG_LEVELS = {
+LOG_LEVELS: Final = {
     None: logging.WARNING,  # 0
     0: logging.ERROR,
     1: logging.WARNING,
@@ -22,26 +22,30 @@ LOG_LEVELS = {
 # Приложение вызовет https://cloud.meters.taipit.ru/oauth/v2/token с client_id и client_secret.
 # Затем вы можете использовать эти значения во время настройки.
 
-DEFAULT_CLIENT_ID = '1_34mi8uiv22iowgsc0wggk0c8888cc80s8gk80gco00g0gko8ko'
-DEFAULT_CLIENT_SECRET = '15lkcj9ytmm8440ggsco8ogo4ockwgcg04okokcwokkk8cksk8'
-GUEST_USERNAME = "guest@taipit.ru"
-GUEST_PASSWORD = "guest"
+DEFAULT_CLIENT_ID: Final = '1_34mi8uiv22iowgsc0wggk0c8888cc80s8gk80gco00g0gko8ko'
+DEFAULT_CLIENT_SECRET: Final = '15lkcj9ytmm8440ggsco8ogo4ockwgcg04okokcwokkk8cksk8'
+GUEST_USERNAME: Final = "guest@taipit.ru"
+GUEST_PASSWORD: Final = "guest"
 
-DEFAULT_BASE_URL = "https://cloud.meters.taipit.ru"
-DEFAULT_TOKEN_URL = "oauth/v2/token"
-DEFAULT_API_URL = "api"
+DEFAULT_BASE_URL: Final = "https://cloud.meters.taipit.ru"
+DEFAULT_TOKEN_URL: Final = "oauth/v2/token"
+DEFAULT_API_URL: Final = "api"
 
-SECTION_CONTROLLERS = 'controllers'
-SECTION_METER_TYPES = 'meterTypes'
-SECTION_REGIONS = 'regions'
-SECTIONS_ALL = (SECTION_REGIONS, SECTION_METER_TYPES, SECTION_CONTROLLERS)
+SECTION_CONTROLLERS: Final = 'controllers'
+SECTION_METER_TYPES: Final = 'meterTypes'
+SECTION_METER_TYPES_FULL: Final = 'meterTypesFull'
+SECTION_REGIONS: Final = 'regions'
+SECTIONS_ALL: Final = (SECTION_REGIONS, SECTION_METER_TYPES, SECTION_CONTROLLERS)
 
-PARAM_ID = 'id'
-PARAM_ACTION = 'action'
-PARAM_SECTIONS = 'sections'
-GET_ENTRIES = 'getEntries'
+PARAM_ID: Final = 'id'
+PARAM_ACTION: Final = 'action'
+PARAM_SECTIONS: Final = 'sections'
+GET_ENTRIES: Final = 'getEntries'
 
-METER_MODELS: dict[int, Tuple[str, str]] = {
+TOKEN_REQUIRED_FIELDS: Final = {'access_token', 'expires_in', 'refresh_token'}
+CLOCK_OUT_OF_SYNC_MAX_SEC: Final = 20
+
+METER_MODELS: Final[dict[int, tuple[str, str]]] = {
     1: ('Меркурий', '230'),
     2: ('Меркурий', '200'),
     3: ('Энергомера', 'CE301, CE303, CE102М (протокол ГОСТ 61107)'),
@@ -67,7 +71,7 @@ METER_MODELS: dict[int, Tuple[str, str]] = {
     24: ('Милур', '0300-0399'),
 }
 
-REGIONS: dict[int, str] = {
+REGIONS: Final[dict[int, str]] = {
     1: 'Республика Адыгея',
     2: 'Республика Башкортостан',
     3: 'Республика Бурятия',
@@ -82,7 +86,7 @@ REGIONS: dict[int, str] = {
     12: 'Республика Марий Эл',
     13: 'Республика Мордовия',
     14: 'Республика Саха (Якутия)',
-    15: 'Республика Северная Осетия — Алания',
+    15: 'Республика Северная Осетия - Алания',
     16: 'Республика Татарстан',
     17: 'Республика Тыва',
     18: 'Удмуртская республика',
@@ -152,9 +156,5 @@ REGIONS: dict[int, str] = {
     87: 'Чукотский автономный округ',
     89: 'Ямало-Ненецкий автономный округ',
     91: 'Республика Крым',
-    92: 'Севастополь'
+    92: 'Севастополь',
 }
-SECTION_METER_TYPES_FULL = 'meterTypesFull'
-
-TOKEN_REQUIRED_FIELDS = {'access_token', 'expires_in', 'refresh_token'}
-CLOCK_OUT_OF_SYNC_MAX_SEC = 20

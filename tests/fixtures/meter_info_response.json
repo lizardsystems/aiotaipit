@@ -1,0 +1,9 @@
+{
+    "id": 12345,
+    "metername": "Test Meter",
+    "sn": "SN001",
+    "type": 16,
+    "status": 1,
+    "regionId": 78,
+    "firmware": "1.0.0"
+}

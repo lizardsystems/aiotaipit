@@ -7,14 +7,15 @@ from pprint import pprint
 
 from aiohttp import ClientSession
 
-from ._version import __version__
+from . import __version__
 from .api import TaipitApi
 from .auth import SimpleTaipitAuth
 from .const import (
     DEFAULT_CLIENT_ID,
     DEFAULT_CLIENT_SECRET,
+    GUEST_PASSWORD,
     GUEST_USERNAME,
-    GUEST_PASSWORD, LOG_LEVELS
+    LOG_LEVELS,
 )
 
 
@@ -87,7 +88,13 @@ async def cli() -> None:
         password = args.password
 
     async with ClientSession() as session:
-        auth = SimpleTaipitAuth(username, password, session, args.client_id, args.client_secret)
+        auth = SimpleTaipitAuth(
+            username,
+            password,
+            session,
+            client_id=args.client_id,
+            client_secret=args.client_secret,
+        )
         api = TaipitApi(auth)
 
         if args.info:
@@ -105,28 +112,27 @@ async def cli() -> None:
             print(f"Info about User ID={args.user_id}:")
             _user = await api.async_get_user_info(args.user_id)
             pprint(_user)
-        else:
-            print("Current User Info:")
-            _current_user = await api.async_get_current_user()
-            pprint(_current_user)
+            return
 
         if args.settings:
             print("Settings:")
             _settings = await api.async_get_settings()
             pprint(_settings)
+            return
 
         if args.warnings:
             print("Warnings:")
             _warnings = await api.async_get_warnings()
             pprint(_warnings)
+            return
 
-        if args.readings:
-            if args.id:
-                print(f"Readings Meter ID={args.id}:")
-                _readings = await api.async_get_meter_readings(args.id)
-                pprint(_readings)
+        if args.readings and args.id:
+            print(f"Readings Meter ID={args.id}:")
+            _readings = await api.async_get_meter_readings(args.id)
+            pprint(_readings)
+            return
 
-        # show all reading in all other cases
+        # default: show all meters with readings
         print("Readings:")
         _all_readings = await api.async_get_meters()
         pprint(_all_readings)

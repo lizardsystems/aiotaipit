@@ -1,0 +1,9 @@
+[
+    {
+        "id": 12345,
+        "metername": "Test Meter",
+        "sn": "SN001",
+        "type": 16,
+        "isOwner": true
+    }
+]

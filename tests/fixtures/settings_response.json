@@ -1,0 +1,10 @@
+{
+    "regions": [
+        {"id": 77, "name": "Москва"},
+        {"id": 78, "name": "Санкт-Петербург"}
+    ],
+    "meterTypes": [
+        {"id": 16, "name": "НЕВА МТ 114 (Wi-Fi)"}
+    ],
+    "controllers": []
+}
