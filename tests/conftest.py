@@ -8,9 +8,9 @@ from typing import Any
 import aiohttp
 import pytest
 import pytest_asyncio
-from aioresponses import aioresponses
 
 from aiotaipit import SimpleTaipitAuth, TaipitApi
+from tests.aiohttp_mock import AiohttpClientMocker
 from tests.common import (
     TEST_CLIENT_ID,
     TEST_CLIENT_SECRET,
@@ -49,7 +49,6 @@ async def api(auth: SimpleTaipitAuth) -> TaipitApi:
 
 
 @pytest.fixture
-def session_mock() -> aioresponses:
-    """Create an aioresponses mock context."""
-    with aioresponses() as mock:
-        yield mock
+def aioclient_mock() -> AiohttpClientMocker:
+    """Create a mocker for aiohttp client requests."""
+    return AiohttpClientMocker()

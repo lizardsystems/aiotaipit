@@ -198,7 +198,16 @@ class SimpleTaipitAuth(AbstractTaipitAuth):
         async with self._lock:
             if self._is_valid_token(self._token):
                 if self._is_expired_token(self._token):
-                    self._token = await self._async_refresh_token(self._token)
+                    try:
+                        self._token = await self._async_refresh_token(self._token)
+                    except TaipitAuthInvalidGrant:
+                        # The refresh token expired or was revoked server-side.
+                        # The password is still known, so sign in again instead
+                        # of failing authentication.
+                        LOGGER.debug(
+                            "Refresh token rejected by server, signing in again"
+                        )
+                        self._token = await self._async_new_token()
                     self._fire_token_update(self._token)
             else:
                 self._token = await self._async_new_token()

@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import aiohttp
 import pytest
 import pytest_asyncio
-from aioresponses import aioresponses
+from yarl import URL
 
 from aiotaipit import SimpleTaipitAuth
 from aiotaipit.const import DEFAULT_BASE_URL, DEFAULT_TOKEN_URL
@@ -19,12 +19,14 @@ from aiotaipit.exceptions import (
     TaipitTokenAcquireFailed,
     TaipitTokenRefreshFailed,
 )
+from tests.aiohttp_mock import AiohttpClientMocker, AiohttpClientMockResponse
 from tests.conftest import load_fixture
 
 # Token requests use query params, so we match with a regex pattern
 TOKEN_URL_PATTERN = re.compile(
     re.escape(f"{DEFAULT_BASE_URL}/{DEFAULT_TOKEN_URL}") + r"(\?.*)?"
 )
+TOKEN_URL = f"{DEFAULT_BASE_URL}/{DEFAULT_TOKEN_URL}"
 API_URL = f"{DEFAULT_BASE_URL}/api"
 USERNAME = "testuser@example.com"
 PASSWORD = "testpass"
@@ -33,9 +35,9 @@ CLIENT_SECRET = "test_client_secret"
 
 
 @pytest_asyncio.fixture
-async def mock_auth() -> SimpleTaipitAuth:
+async def mock_auth(aioclient_mock: AiohttpClientMocker) -> SimpleTaipitAuth:
     """Create a SimpleTaipitAuth instance for mocked tests."""
-    async with aiohttp.ClientSession() as session:
+    async with aioclient_mock.create_session() as session:
         yield SimpleTaipitAuth(
             username=USERNAME,
             password=PASSWORD,
@@ -46,9 +48,11 @@ async def mock_auth() -> SimpleTaipitAuth:
 
 
 @pytest_asyncio.fixture
-async def mock_auth_with_token() -> SimpleTaipitAuth:
+async def mock_auth_with_token(
+    aioclient_mock: AiohttpClientMocker,
+) -> SimpleTaipitAuth:
     """Create a SimpleTaipitAuth with a pre-loaded valid token."""
-    async with aiohttp.ClientSession() as session:
+    async with aioclient_mock.create_session() as session:
         yield SimpleTaipitAuth(
             username=USERNAME,
             password=PASSWORD,
@@ -66,11 +70,11 @@ async def mock_auth_with_token() -> SimpleTaipitAuth:
 
 class TestTokenAcquire:
     async def test_new_token_success(
-        self, mock_auth: SimpleTaipitAuth, session_mock: aioresponses
+        self, mock_auth: SimpleTaipitAuth, aioclient_mock: AiohttpClientMocker
     ) -> None:
         """Test acquiring a new token with password grant."""
-        session_mock.get(
-            TOKEN_URL_PATTERN, payload=load_fixture("token_response.json")
+        aioclient_mock.get(
+            TOKEN_URL_PATTERN, json=load_fixture("token_response.json")
         )
 
         token = await mock_auth._async_new_token()
@@ -81,56 +85,56 @@ class TestTokenAcquire:
         assert "expires_at" in token
 
     async def test_new_token_invalid_grant(
-        self, mock_auth: SimpleTaipitAuth, session_mock: aioresponses
+        self, mock_auth: SimpleTaipitAuth, aioclient_mock: AiohttpClientMocker
     ) -> None:
         """Test token acquire with wrong credentials raises InvalidGrant."""
-        session_mock.get(
+        aioclient_mock.get(
             TOKEN_URL_PATTERN,
             status=400,
-            payload=load_fixture("token_invalid_grant.json"),
+            json=load_fixture("token_invalid_grant.json"),
         )
         with pytest.raises(TaipitAuthInvalidGrant):
             await mock_auth._async_new_token()
 
     async def test_new_token_invalid_client(
-        self, mock_auth: SimpleTaipitAuth, session_mock: aioresponses
+        self, mock_auth: SimpleTaipitAuth, aioclient_mock: AiohttpClientMocker
     ) -> None:
         """Test token acquire with wrong client creds raises InvalidClient."""
-        session_mock.get(
+        aioclient_mock.get(
             TOKEN_URL_PATTERN,
             status=400,
-            payload=load_fixture("token_invalid_client.json"),
+            json=load_fixture("token_invalid_client.json"),
         )
         with pytest.raises(TaipitAuthInvalidClient):
             await mock_auth._async_new_token()
 
     async def test_new_token_http_error(
-        self, mock_auth: SimpleTaipitAuth, session_mock: aioresponses
+        self, mock_auth: SimpleTaipitAuth, aioclient_mock: AiohttpClientMocker
     ) -> None:
         """Test token acquire wraps HTTP errors in TaipitTokenAcquireFailed."""
-        session_mock.get(TOKEN_URL_PATTERN, status=500)
+        aioclient_mock.get(TOKEN_URL_PATTERN, status=500)
         with pytest.raises(TaipitTokenAcquireFailed):
             await mock_auth._async_new_token()
 
     async def test_new_token_generic_400_error(
-        self, mock_auth: SimpleTaipitAuth, session_mock: aioresponses
+        self, mock_auth: SimpleTaipitAuth, aioclient_mock: AiohttpClientMocker
     ) -> None:
         """Test token acquire with unknown 400 error raises TaipitAuthError."""
-        session_mock.get(
+        aioclient_mock.get(
             TOKEN_URL_PATTERN,
             status=400,
-            payload={"error": "unsupported_grant_type", "error_description": "Bad grant"},
+            json={"error": "unsupported_grant_type", "error_description": "Bad grant"},
         )
         with pytest.raises(TaipitTokenAcquireFailed):
             await mock_auth._async_new_token()
 
     async def test_new_token_invalid_response(
-        self, mock_auth: SimpleTaipitAuth, session_mock: aioresponses
+        self, mock_auth: SimpleTaipitAuth, aioclient_mock: AiohttpClientMocker
     ) -> None:
         """Test token acquire raises on missing required fields."""
-        session_mock.get(
+        aioclient_mock.get(
             TOKEN_URL_PATTERN,
-            payload={"access_token": "tok", "token_type": "bearer"},
+            json={"access_token": "tok", "token_type": "bearer"},
         )
         with pytest.raises(TaipitTokenAcquireFailed):
             await mock_auth._async_new_token()
@@ -138,11 +142,11 @@ class TestTokenAcquire:
 
 class TestTokenRefresh:
     async def test_refresh_success(
-        self, mock_auth_with_token: SimpleTaipitAuth, session_mock: aioresponses
+        self, mock_auth_with_token: SimpleTaipitAuth, aioclient_mock: AiohttpClientMocker
     ) -> None:
         """Test refreshing a token."""
-        session_mock.get(
-            TOKEN_URL_PATTERN, payload=load_fixture("token_response.json")
+        aioclient_mock.get(
+            TOKEN_URL_PATTERN, json=load_fixture("token_response.json")
         )
 
         token = await mock_auth_with_token._async_refresh_token(
@@ -154,13 +158,13 @@ class TestTokenRefresh:
         assert token["expires_in"] == 3600
 
     async def test_refresh_invalid_grant(
-        self, mock_auth_with_token: SimpleTaipitAuth, session_mock: aioresponses
+        self, mock_auth_with_token: SimpleTaipitAuth, aioclient_mock: AiohttpClientMocker
     ) -> None:
         """Test refresh with revoked token raises InvalidGrant."""
-        session_mock.get(
+        aioclient_mock.get(
             TOKEN_URL_PATTERN,
             status=400,
-            payload=load_fixture("token_invalid_grant.json"),
+            json=load_fixture("token_invalid_grant.json"),
         )
         with pytest.raises(TaipitAuthInvalidGrant):
             await mock_auth_with_token._async_refresh_token(
@@ -168,10 +172,10 @@ class TestTokenRefresh:
             )
 
     async def test_refresh_http_error(
-        self, mock_auth_with_token: SimpleTaipitAuth, session_mock: aioresponses
+        self, mock_auth_with_token: SimpleTaipitAuth, aioclient_mock: AiohttpClientMocker
     ) -> None:
         """Test refresh wraps HTTP errors in TaipitTokenRefreshFailed."""
-        session_mock.get(TOKEN_URL_PATTERN, status=500)
+        aioclient_mock.get(TOKEN_URL_PATTERN, status=500)
         with pytest.raises(TaipitTokenRefreshFailed):
             await mock_auth_with_token._async_refresh_token(
                 mock_auth_with_token._token
@@ -187,10 +191,10 @@ class TestGetAccessToken:
         assert token == "existing_access_token"
 
     async def test_expired_token_triggers_refresh(
-        self, session_mock: aioresponses
+        self, aioclient_mock: AiohttpClientMocker
     ) -> None:
         """Test async_get_access_token refreshes expired token."""
-        async with aiohttp.ClientSession() as session:
+        async with aioclient_mock.create_session() as session:
             auth = SimpleTaipitAuth(
                 username=USERNAME,
                 password=PASSWORD,
@@ -204,19 +208,100 @@ class TestGetAccessToken:
                     "expires_at": time.time() - 100,
                 },
             )
-            session_mock.get(
-                TOKEN_URL_PATTERN, payload=load_fixture("token_response.json")
+            aioclient_mock.get(
+                TOKEN_URL_PATTERN, json=load_fixture("token_response.json")
             )
             token = await auth.async_get_access_token()
 
         assert token == "new_access_token"
 
+    async def test_rejected_refresh_token_signs_in_again(
+        self, aioclient_mock: AiohttpClientMocker
+    ) -> None:
+        """A refresh token rejected with invalid_grant falls back to password login."""
+        updates: list[dict] = []
+        async with aioclient_mock.create_session() as session:
+            auth = SimpleTaipitAuth(
+                username=USERNAME,
+                password=PASSWORD,
+                session=session,
+                client_id=CLIENT_ID,
+                client_secret=CLIENT_SECRET,
+                token={
+                    "access_token": "old_token",
+                    "refresh_token": "revoked_refresh",
+                    "expires_in": 3600,
+                    "expires_at": time.time() - 100,
+                },
+                token_update_callback=updates.append,
+            )
+            responses = iter(
+                [
+                    AiohttpClientMockResponse(
+                        "get",
+                        URL(TOKEN_URL),
+                        status=400,
+                        json=load_fixture("token_invalid_grant.json"),
+                    ),
+                    AiohttpClientMockResponse(
+                        "get", URL(TOKEN_URL), json=load_fixture("token_response.json")
+                    ),
+                ]
+            )
+
+            async def _next_response(method, url, data):
+                return next(responses)
+
+            aioclient_mock.get(TOKEN_URL_PATTERN, side_effect=_next_response)
+            token = await auth.async_get_access_token()
+
+        assert token == "new_access_token"
+        assert len(updates) == 1
+        assert updates[0]["access_token"] == "new_access_token"
+
+    async def test_rejected_refresh_and_password_raises_invalid_grant(
+        self, aioclient_mock: AiohttpClientMocker
+    ) -> None:
+        """If the password is rejected too, InvalidGrant reaches the caller."""
+        async with aioclient_mock.create_session() as session:
+            auth = SimpleTaipitAuth(
+                username=USERNAME,
+                password=PASSWORD,
+                session=session,
+                client_id=CLIENT_ID,
+                client_secret=CLIENT_SECRET,
+                token={
+                    "access_token": "old_token",
+                    "refresh_token": "revoked_refresh",
+                    "expires_in": 3600,
+                    "expires_at": time.time() - 100,
+                },
+            )
+            responses = iter(
+                [
+                    AiohttpClientMockResponse(
+                        "get",
+                        URL(TOKEN_URL),
+                        status=400,
+                        json=load_fixture("token_invalid_grant.json"),
+                    )
+                    for _ in range(2)
+                ]
+            )
+
+            async def _next_response(method, url, data):
+                return next(responses)
+
+            aioclient_mock.get(TOKEN_URL_PATTERN, side_effect=_next_response)
+            with pytest.raises(TaipitAuthInvalidGrant):
+                await auth.async_get_access_token()
+
     async def test_no_token_triggers_acquire(
-        self, mock_auth: SimpleTaipitAuth, session_mock: aioresponses
+        self, mock_auth: SimpleTaipitAuth, aioclient_mock: AiohttpClientMocker
     ) -> None:
         """Test async_get_access_token acquires new token when none exists."""
-        session_mock.get(
-            TOKEN_URL_PATTERN, payload=load_fixture("token_response.json")
+        aioclient_mock.get(
+            TOKEN_URL_PATTERN, json=load_fixture("token_response.json")
         )
         token = await mock_auth.async_get_access_token()
         assert token == "new_access_token"
@@ -242,7 +327,7 @@ class TestTokenRestore:
         assert token == "restored_token"
 
     async def test_restore_expired_token_refreshes(
-        self, session_mock: aioresponses
+        self, aioclient_mock: AiohttpClientMocker
     ) -> None:
         """Test restored expired token triggers refresh."""
         saved_token = {
@@ -251,15 +336,15 @@ class TestTokenRestore:
             "expires_in": 3600,
             "expires_at": time.time() - 100,
         }
-        async with aiohttp.ClientSession() as session:
+        async with aioclient_mock.create_session() as session:
             auth = SimpleTaipitAuth(
                 username=USERNAME,
                 password=PASSWORD,
                 session=session,
                 token=saved_token,
             )
-            session_mock.get(
-                TOKEN_URL_PATTERN, payload=load_fixture("token_response.json")
+            aioclient_mock.get(
+                TOKEN_URL_PATTERN, json=load_fixture("token_response.json")
             )
             token = await auth.async_get_access_token()
         assert token == "new_access_token"
@@ -267,19 +352,19 @@ class TestTokenRestore:
 
 class TestTokenUpdateCallback:
     async def test_callback_on_new_token(
-        self, session_mock: aioresponses
+        self, aioclient_mock: AiohttpClientMocker
     ) -> None:
         """Test callback is called when acquiring a new token."""
         callback = MagicMock()
-        async with aiohttp.ClientSession() as session:
+        async with aioclient_mock.create_session() as session:
             auth = SimpleTaipitAuth(
                 username=USERNAME,
                 password=PASSWORD,
                 session=session,
                 token_update_callback=callback,
             )
-            session_mock.get(
-                TOKEN_URL_PATTERN, payload=load_fixture("token_response.json")
+            aioclient_mock.get(
+                TOKEN_URL_PATTERN, json=load_fixture("token_response.json")
             )
             await auth.async_get_access_token()
 
@@ -289,11 +374,11 @@ class TestTokenUpdateCallback:
         assert token_data["refresh_token"] == "new_refresh_token"
 
     async def test_callback_on_refresh(
-        self, session_mock: aioresponses
+        self, aioclient_mock: AiohttpClientMocker
     ) -> None:
         """Test callback is called when refreshing a token."""
         callback = MagicMock()
-        async with aiohttp.ClientSession() as session:
+        async with aioclient_mock.create_session() as session:
             auth = SimpleTaipitAuth(
                 username=USERNAME,
                 password=PASSWORD,
@@ -306,8 +391,8 @@ class TestTokenUpdateCallback:
                 },
                 token_update_callback=callback,
             )
-            session_mock.get(
-                TOKEN_URL_PATTERN, payload=load_fixture("token_response.json")
+            aioclient_mock.get(
+                TOKEN_URL_PATTERN, json=load_fixture("token_response.json")
             )
             await auth.async_get_access_token()
 
@@ -316,11 +401,11 @@ class TestTokenUpdateCallback:
         assert token_data["access_token"] == "new_access_token"
 
     async def test_no_callback_when_not_set(
-        self, mock_auth: SimpleTaipitAuth, session_mock: aioresponses
+        self, mock_auth: SimpleTaipitAuth, aioclient_mock: AiohttpClientMocker
     ) -> None:
         """Test no error when callback is not set."""
-        session_mock.get(
-            TOKEN_URL_PATTERN, payload=load_fixture("token_response.json")
+        aioclient_mock.get(
+            TOKEN_URL_PATTERN, json=load_fixture("token_response.json")
         )
         token = await mock_auth.async_get_access_token()
         assert token == "new_access_token"
@@ -367,20 +452,20 @@ class TestTokenExpiration:
 
 class TestRequest:
     async def test_request_success(
-        self, mock_auth_with_token: SimpleTaipitAuth, session_mock: aioresponses
+        self, mock_auth_with_token: SimpleTaipitAuth, aioclient_mock: AiohttpClientMocker
     ) -> None:
         """Test authenticated request returns data."""
-        session_mock.get(
+        aioclient_mock.get(
             f"{API_URL}/test-endpoint",
-            payload={"result": "ok"},
+            json={"result": "ok"},
         )
         data = await mock_auth_with_token.request("GET", "api/test-endpoint")
         assert data == {"result": "ok"}
 
     async def test_request_http_error(
-        self, mock_auth_with_token: SimpleTaipitAuth, session_mock: aioresponses
+        self, mock_auth_with_token: SimpleTaipitAuth, aioclient_mock: AiohttpClientMocker
     ) -> None:
         """Test request wraps HTTP errors in TaipitApiError."""
-        session_mock.get(f"{API_URL}/fail", status=500)
+        aioclient_mock.get(f"{API_URL}/fail", status=500)
         with pytest.raises(TaipitApiError):
             await mock_auth_with_token.request("GET", "api/fail")

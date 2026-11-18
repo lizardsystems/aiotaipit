@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-11-18
+
+### Fixed
+
+ - `async_get_access_token()` signs in again with the stored username and password when the server rejects the refresh token with `invalid_grant` (the refresh token expired or was revoked server-side). Previously `TaipitAuthInvalidGrant` reached the caller and required manual re-authentication. If the password is rejected as well, `TaipitAuthInvalidGrant` is raised as before.
+
+### Changed
+
+ - Tests mock aiohttp with an in-repo `AiohttpClientMocker` modeled on Home Assistant's `aioclient_mock` instead of `aioresponses`, which does not support aiohttp 3.14 (the version Home Assistant ships). `aioresponses` is no longer a test dependency.
+ - Integration tests declare their class-scoped fixtures at module level. pytest 9.2 deprecates class-scoped fixtures defined as instance methods.
+
 ## [3.0.0] - 2026-02-18
 
 ### Added

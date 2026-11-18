@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aiotaipit"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
     "aiohttp>=3"
 ]
@@ -35,7 +35,6 @@ classifiers = [
 test = [
     "pytest",
     "pytest-asyncio",
-    "aioresponses",
 ]
 
 [project.urls]

@@ -25,16 +25,20 @@ CONF_USERNAME = 'username'
 CONF_ID = 'id'
 
 
+@pytest.fixture(scope='class')
+def user() -> dict:
+    """Current user data shared by the tests of one class."""
+    return {}
+
+
+@pytest.fixture(scope='class')
+def meter_ids() -> list:
+    """Meter ids collected by one test and reused by the next ones."""
+    return []
+
+
 @pytest.mark.integration
 class TestTaipitApi:
-    @pytest.fixture(scope='class')
-    def user(self) -> dict:
-        return {}
-
-    @pytest.fixture(scope='class')
-    def meter_ids(self) -> list:
-        return []
-
     async def test_get_meters(self, api: TaipitApi, meter_ids: list):
         _meters = await api.async_get_meters()
         assert _meters is not None
