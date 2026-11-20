@@ -38,14 +38,14 @@ test = [
 ]
 
 [project.urls]
-Home = "https://github.com/lizardsystems/aiotaipit"
-Repository = "https://github.com/lizardsystems/aiotaipit"
-Documentation = "https://github.com/lizardsystems/aiotaipit"
-"Bug Tracker" = "https://github.com/lizardsystems/aiotaipit/issues"
-Changelog = "https://github.com/lizardsystems/aiotaipit/blob/main/CHANGELOG.md"
+Home = "https://github.com/ru-smarthome/aiotaipit"
+Repository = "https://github.com/ru-smarthome/aiotaipit"
+Documentation = "https://github.com/ru-smarthome/aiotaipit"
+"Bug Tracker" = "https://github.com/ru-smarthome/aiotaipit/issues"
+Changelog = "https://github.com/ru-smarthome/aiotaipit/blob/main/CHANGELOG.md"
 
 [[project.authors]]
-name = "LizardSystems"
+name = "ru-smarthome"
 
 [tool.setuptools]
 platforms = ["any"]

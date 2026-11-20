@@ -1,6 +1,6 @@
 # aioTaipit
 
-[![CI](https://github.com/lizardsystems/aiotaipit/actions/workflows/ci.yml/badge.svg)](https://github.com/lizardsystems/aiotaipit/actions/workflows/ci.yml)
+[![CI](https://github.com/ru-smarthome/aiotaipit/actions/workflows/ci.yml/badge.svg)](https://github.com/ru-smarthome/aiotaipit/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/aiotaipit)](https://pypi.org/project/aiotaipit/)
 
 Asynchronous Python API for [Taipit cloud meters](https://cloud.meters.taipit.ru).
